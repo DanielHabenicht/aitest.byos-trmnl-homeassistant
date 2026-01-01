@@ -1,0 +1,13 @@
+# Icon Placeholder
+
+This file should be replaced with a 256x256 PNG image representing the TRMNL BYOS add-on.
+
+Recommended design:
+- A minimalist e-ink display icon
+- Colors: Blue (#03A9F4) and white
+- Include a small home icon overlay to indicate Home Assistant integration
+
+To create the actual icon:
+1. Design a 256x256 PNG image
+2. Replace this file with the actual icon.png
+3. Ensure the file is named exactly "icon.png"

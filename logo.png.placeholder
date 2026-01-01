@@ -1,0 +1,14 @@
+# Logo Placeholder
+
+This file should be replaced with a logo image for the TRMNL BYOS add-on.
+
+Recommended specifications:
+- Size: Approximately 500x100 to 800x200 pixels
+- Format: PNG with transparency
+- Content: "TRMNL BYOS" text with the e-ink display icon
+- Colors: Blue (#03A9F4) and dark gray (#333333)
+
+To create the actual logo:
+1. Design the logo image following the specifications above
+2. Replace this file with the actual logo.png
+3. Ensure the file is named exactly "logo.png"
