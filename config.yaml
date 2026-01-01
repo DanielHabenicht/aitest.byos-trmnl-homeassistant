@@ -1,0 +1,32 @@
+name: TRMNL BYOS
+version: "1.0.0"
+slug: trmnl-byos
+description: Host your own TRMNL backend with Home Assistant integration
+url: https://github.com/DanielHabenicht/aitest.byos-trmnl-homeassistant
+image: ghcr.io/danielhabenicht/trmnl-byos-homeassistant
+arch:
+  - aarch64
+  - amd64
+init: false
+startup: application
+boot: auto
+ports:
+  8080/tcp: 8080
+ports_description:
+  8080/tcp: Web interface
+webui: http://[HOST]:[PORT:8080]
+ingress: true
+ingress_port: 8080
+panel_icon: mdi:monitor-dashboard
+options:
+  app_key: ""
+  app_url: "http://homeassistant.local:8080"
+  db_connection: sqlite
+schema:
+  app_key: str
+  app_url: str
+  db_connection: list(sqlite|mysql|pgsql)?
+environment:
+  APP_ENV: production
+  APP_DEBUG: "false"
+  LOG_CHANNEL: stderr
