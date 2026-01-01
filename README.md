@@ -77,18 +77,22 @@ Default: `sqlite`
    - All standard TRMNL BYOS features are available
 
 4. **Home Assistant Entity Configuration**:
-   - Access the custom dashboard to configure entity exposure
+   - Access the custom dashboard at `/homeassistant` path
+   - Configure your TRMNL webhook URL
    - Select which sensors, switches, and other entities to make available
-   - Configure how they appear on your TRMNL displays
+   - Test the webhook connection
+   - Configure how they appear on your TRMNL displays via TRMNL's native plugin system
 
 ## Features
 
 - ✅ Full TRMNL BYOS Laravel application
+- ✅ Webhook-based integration with TRMNL's native plugin system
 - ✅ SQLite database (no external database required)
 - ✅ Persistent data storage
 - ✅ Home Assistant ingress support
 - ✅ Automatic SSL via Home Assistant
-- ✅ Multi-architecture support (amd64, armv7, aarch64, etc.)
+- ✅ Custom dashboard for entity selection and webhook configuration
+- ✅ Multi-architecture support (amd64, aarch64)
 
 ## Support
 

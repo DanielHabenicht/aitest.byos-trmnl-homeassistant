@@ -207,6 +207,34 @@
         @endif
 
         <div class="controls">
+            <h2 style="margin-bottom: 1rem; font-size: 1.25rem;">TRMNL Webhook Configuration</h2>
+            <p style="margin-bottom: 1rem; color: #666; font-size: 0.9rem;">
+                Configure the TRMNL webhook URL to push Home Assistant entity data to your TRMNL plugin. 
+                Get your webhook URL from your TRMNL plugin settings.
+            </p>
+            
+            <label for="webhook-url">TRMNL Webhook URL *</label>
+            <input type="url" id="webhook-url" placeholder="https://usetrmnl.com/api/custom_plugins/..." 
+                   value="{{ $webhookConfig->webhook_url ?? '' }}">
+            
+            <label for="plugin-uuid">Plugin UUID (optional)</label>
+            <input type="text" id="plugin-uuid" placeholder="550e8400-e29b-41d4-a716-446655440000" 
+                   value="{{ $webhookConfig->plugin_uuid ?? '' }}">
+            
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <button onclick="saveWebhookConfig()" style="flex: 1;">Save & Send Test</button>
+                <button onclick="testWebhook()" style="flex: 1; background: #4caf50;">Test Webhook</button>
+            </div>
+            
+            <div id="webhook-status" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+        </div>
+
+        <div class="controls" style="margin-top: 2rem;">
+            <h2 style="margin-bottom: 1rem; font-size: 1.25rem;">Entity Selection</h2>
+            <p style="margin-bottom: 1rem; color: #666; font-size: 0.9rem;">
+                Select which Home Assistant entities to expose to TRMNL via webhook notifications.
+            </p>
+            
             <label for="domain-filter">Filter by Domain</label>
             <select id="domain-filter">
                 <option value="">All Domains</option>
@@ -333,6 +361,82 @@
                 }
             } catch (error) {
                 alert('Error: ' + error.message);
+            }
+        }
+
+        async function saveWebhookConfig() {
+            const webhookUrl = document.getElementById('webhook-url').value;
+            const pluginUuid = document.getElementById('plugin-uuid').value;
+            const statusDiv = document.getElementById('webhook-status');
+
+            if (!webhookUrl) {
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#f44336';
+                statusDiv.style.color = 'white';
+                statusDiv.textContent = 'Please enter a webhook URL';
+                return;
+            }
+
+            try {
+                const response = await fetch('/homeassistant/api/webhook/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        webhook_url: webhookUrl,
+                        plugin_uuid: pluginUuid,
+                        enabled: true
+                    })
+                });
+
+                const data = await response.json();
+                statusDiv.style.display = 'block';
+                if (data.success) {
+                    statusDiv.style.background = '#4caf50';
+                    statusDiv.style.color = 'white';
+                    statusDiv.textContent = '✓ ' + data.message;
+                } else {
+                    statusDiv.style.background = '#f44336';
+                    statusDiv.style.color = 'white';
+                    statusDiv.textContent = '✗ ' + data.message;
+                }
+            } catch (error) {
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#f44336';
+                statusDiv.style.color = 'white';
+                statusDiv.textContent = '✗ Error: ' + error.message;
+            }
+        }
+
+        async function testWebhook() {
+            const statusDiv = document.getElementById('webhook-status');
+            
+            try {
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#2196f3';
+                statusDiv.style.color = 'white';
+                statusDiv.textContent = 'Sending test webhook...';
+
+                const response = await fetch('/homeassistant/api/webhook/test', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    statusDiv.style.background = '#4caf50';
+                    statusDiv.textContent = '✓ ' + data.message;
+                } else {
+                    statusDiv.style.background = '#f44336';
+                    statusDiv.textContent = '✗ ' + data.message;
+                }
+            } catch (error) {
+                statusDiv.style.background = '#f44336';
+                statusDiv.textContent = '✗ Error: ' + error.message;
             }
         }
 

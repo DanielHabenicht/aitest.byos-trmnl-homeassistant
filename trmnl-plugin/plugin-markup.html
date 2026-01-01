@@ -1,0 +1,67 @@
+<div class="row">
+  <div class="col">
+    <h1>🏠 Home Assistant</h1>
+    <p class="text-muted">{{ updated_at | date: "%B %d, %Y %I:%M %p" }}</p>
+  </div>
+</div>
+
+<div class="row mt-4">
+  {% for entity in entities limit:6 %}
+    <div class="col-6 mb-3">
+      <div class="card">
+        <div class="card-body">
+          {% assign domain = entity.entity_id | split: "." | first %}
+          
+          {%comment%} Icon based on domain {%endcomment%}
+          <div class="icon mb-2">
+            {% if domain == "sensor" %}📊
+            {% elsif domain == "light" %}💡
+            {% elsif domain == "switch" %}🔌
+            {% elsif domain == "climate" %}🌡️
+            {% elsif domain == "weather" %}🌤️
+            {% elsif domain == "person" %}👤
+            {% elsif domain == "binary_sensor" %}🔘
+            {% else %}•
+            {% endif %}
+          </div>
+          
+          <div class="name text-sm text-muted">{{ entity.display_name }}</div>
+          
+          <div class="value text-lg font-bold">
+            {{ entity.state }}
+            {% if entity.attributes.unit_of_measurement %}
+              <span class="text-sm">{{ entity.attributes.unit_of_measurement }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% if entities.size == 0 %}
+  <div class="row mt-4">
+    <div class="col text-center">
+      <p class="text-muted">No entities configured</p>
+      <p class="text-sm">Configure entities in your Home Assistant add-on</p>
+    </div>
+  </div>
+{% endif %}
+
+<style>
+  .icon {
+    font-size: 2rem;
+  }
+  .card {
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    min-height: 120px;
+  }
+  .name {
+    margin-bottom: 0.5rem;
+  }
+  .value {
+    font-size: 1.5rem;
+  }
+</style>

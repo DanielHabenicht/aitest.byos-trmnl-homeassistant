@@ -1,169 +1,193 @@
-# Example TRMNL Plugins for Home Assistant
+# TRMNL Plugin Examples for Home Assistant
 
-This directory contains example TRMNL plugins that demonstrate how to use the Home Assistant entity integration.
+This directory contains examples and documentation for using the Home Assistant integration with TRMNL devices via webhooks.
 
-## Available Examples
+## Webhook-Based Integration
 
-### HomeAssistantDashboard.php
+The Home Assistant add-on uses **webhooks** to push entity data to TRMNL's native plugin system. This is more efficient than polling and integrates seamlessly with TRMNL's architecture.
 
-A comprehensive example plugin that:
-- Fetches exposed Home Assistant entities
-- Formats them for display on TRMNL
-- Supports multiple layout styles
-- Includes proper error handling
-- Demonstrates icon mapping and state formatting
+### How It Works
 
-## Using the Examples
+1. **Configure Webhook**: In the Home Assistant add-on UI (`/homeassistant`), enter your TRMNL plugin webhook URL
+2. **Select Entities**: Choose which Home Assistant entities to expose to TRMNL
+3. **Receive Webhooks**: TRMNL receives webhook notifications with current entity states
+4. **Display Data**: Use TRMNL's native Liquid templating to render the data
 
-### Installation
+## Creating a TRMNL Plugin
 
-1. Access your TRMNL BYOS installation
-2. Navigate to the plugins directory (typically `/var/www/html/app/Plugins/`)
-3. Copy the example plugin file:
-   ```bash
-   cp /path/to/examples/HomeAssistantDashboard.php /var/www/html/app/Plugins/
-   ```
-4. Register the plugin in your TRMNL dashboard
-5. Configure and assign to a display layout
+### Step 1: Create Custom Plugin in TRMNL
 
-### Customization
+1. Log into your TRMNL BYOS dashboard
+2. Navigate to **Plugins** → **Custom Plugins**
+3. Click **Create Plugin**
+4. Copy the webhook URL provided (e.g., `https://your-trmnl/api/custom_plugins/[uuid]/webhook`)
 
-You can customize these plugins by:
+### Step 2: Configure in Home Assistant Add-on
 
-1. **Modifying the layout**: Change how entities are displayed
-2. **Adding filters**: Filter entities by domain or attributes
-3. **Custom formatting**: Change how states are formatted
-4. **Icons**: Use different icons or emojis
-5. **Refresh interval**: Adjust how often data is updated
+1. Open the Home Assistant add-on dashboard at `/homeassistant`
+2. Paste your TRMNL webhook URL in the configuration section
+3. Select which entities you want to expose
+4. Click "Save & Send Test" to test the webhook
 
-## Creating Your Own Plugin
+### Step 3: Design Your Plugin Markup
 
-Use these examples as a template for creating custom plugins:
+Use TRMNL's Liquid templating to display the data. See the `trmnl-plugin/` directory for complete examples.
 
-```php
-namespace App\Plugins;
+## Webhook Data Format
 
-class MyCustomPlugin
-{
-    public static function metadata()
-    {
-        return [
-            'name' => 'My Plugin',
-            'description' => 'Custom plugin description',
-            'author' => 'Your Name',
-            'version' => '1.0.0',
-        ];
-    }
+The webhook sends data in this structure:
 
-    public static function render($settings = [])
-    {
-        // Fetch Home Assistant data
-        $entities = self::getHomeAssistantData();
-        
-        // Process and format data
-        $data = self::processData($entities);
-        
-        return [
-            'success' => true,
-            'data' => $data,
-        ];
-    }
-
-    private static function getHomeAssistantData()
-    {
-        $response = Http::get(url('/api/homeassistant/entities'));
-        return $response->json()['entities'] ?? [];
-    }
-
-    private static function processData($entities)
-    {
-        // Your custom processing logic
-        return $entities;
-    }
-}
-```
-
-## API Reference
-
-### Available Endpoints
-
-#### Get All Exposed Entities
-```
-GET /api/homeassistant/entities
-```
-
-Returns all entities that have been marked as "exposed" in the Home Assistant dashboard.
-
-**Response:**
 ```json
 {
-  "success": true,
-  "entities": [
-    {
-      "entity_id": "sensor.temperature",
-      "state": "22.5",
-      "attributes": {
-        "friendly_name": "Living Room Temperature",
-        "unit_of_measurement": "°C"
-      },
-      "display_name": "Living Room Temp",
-      "format": null
-    }
-  ]
-}
-```
-
-#### Get Specific Entity
-```
-GET /api/homeassistant/entities/{entity_id}
-```
-
-Returns data for a specific entity.
-
-**Response:**
-```json
-{
-  "success": true,
-  "entity": {
-    "entity_id": "sensor.temperature",
-    "state": "22.5",
-    "attributes": {
-      "friendly_name": "Living Room Temperature",
-      "unit_of_measurement": "°C"
-    }
+  "merge_variables": {
+    "entities": [
+      {
+        "entity_id": "sensor.temperature",
+        "state": "22.5",
+        "display_name": "Living Room Temp",
+        "attributes": {
+          "unit_of_measurement": "°C",
+          "friendly_name": "Living Room Temperature"
+        },
+        "last_changed": "2026-01-01T12:00:00+00:00"
+      }
+    ],
+    "updated_at": "2026-01-01T12:00:00+00:00"
   }
 }
 ```
 
-## Best Practices
+## Example Plugin Markup
 
-1. **Error Handling**: Always handle API failures gracefully
-2. **Caching**: Consider caching entity data to reduce API calls
-3. **Refresh Intervals**: Set appropriate refresh intervals (5-15 minutes recommended)
-4. **Display Limits**: Limit the number of entities shown based on screen size
-5. **State Formatting**: Format states appropriately for e-ink displays
-6. **Icons**: Use simple, clear icons that work well on e-ink
+### Basic Entity List
 
-## Common Use Cases
+```liquid
+<h1>🏠 Home Status</h1>
+
+{% for entity in entities %}
+  <div>
+    <strong>{{ entity.display_name }}</strong>: 
+    {{ entity.state }} {{ entity.attributes.unit_of_measurement }}
+  </div>
+{% endfor %}
+```
 
 ### Temperature Dashboard
-Display temperature sensors from different rooms
 
-### Energy Monitor
-Show energy consumption and solar production
+```liquid
+<h1>🌡️ Temperature Monitor</h1>
 
-### Security Status
-Display lock states, door sensors, and camera status
+{% for entity in entities %}
+  {% if entity.entity_id contains "temperature" %}
+    <div class="temp-card">
+      <div class="location">{{ entity.display_name }}</div>
+      <div class="value">
+        {{ entity.state | round: 1 }}{{ entity.attributes.unit_of_measurement }}
+      </div>
+    </div>
+  {% endif %}
+{% endfor %}
+```
 
-### Weather Station
-Combine weather entities with indoor conditions
+### Smart Home Overview
 
-### Presence Detection
-Show who's home using person/device tracker entities
+```liquid
+<div class="grid">
+  <div class="section">
+    <h2>💡 Lights</h2>
+    {% for entity in entities %}
+      {% if entity.entity_id contains "light" %}
+        {{ entity.display_name }}: {{ entity.state | upcase }}
+      {% endif %}
+    {% endfor %}
+  </div>
+  
+  <div class="section">
+    <h2>🌡️ Climate</h2>
+    {% for entity in entities %}
+      {% if entity.entity_id contains "climate" or entity.entity_id contains "temperature" %}
+        {{ entity.display_name }}: {{ entity.state }}°
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+```
+
+## Advanced Features
+
+### Filtering by Domain
+
+```liquid
+{% assign sensors = entities | where_exp: "item", "item.entity_id contains 'sensor'" %}
+{% for sensor in sensors %}
+  {{ sensor.display_name }}: {{ sensor.state }}
+{% endfor %}
+```
+
+### Conditional Display
+
+```liquid
+{% for entity in entities %}
+  {% if entity.entity_id == "binary_sensor.front_door" %}
+    {% if entity.state == "on" %}
+      ⚠️ Front door is OPEN
+    {% else %}
+      ✓ Front door is closed
+    {% endif %}
+  {% endif %}
+{% endfor %}
+```
+
+### Icons by Device Class
+
+```liquid
+{% for entity in entities %}
+  {% assign device_class = entity.attributes.device_class %}
+  
+  {% if device_class == "temperature" %}🌡️
+  {% elsif device_class == "humidity" %}💧
+  {% elsif device_class == "battery" %}🔋
+  {% elsif device_class == "motion" %}🚶
+  {% endif %}
+  
+  {{ entity.display_name }}: {{ entity.state }}
+{% endfor %}
+```
+
+## Best Practices
+
+1. **Limit Entities**: Only expose entities you want to display to reduce webhook payload size
+2. **Use Display Names**: Configure friendly display names in the add-on UI
+3. **Test Webhooks**: Use the "Test Webhook" button to verify your setup
+4. **Handle Empty Data**: Always check if entities exist before displaying
+5. **Optimize for E-ink**: Design for high contrast and minimal updates
+
+## Complete Example
+
+See the `../trmnl-plugin/` directory for a complete, production-ready TRMNL plugin example with:
+- Full markup template
+- Icon mapping
+- Responsive grid layout
+- Error handling
+
+## Troubleshooting
+
+### No Data Showing
+
+1. Verify webhook URL is correct
+2. Check that entities are selected in the add-on
+3. Click "Test Webhook" to send manual update
+4. Check TRMNL plugin logs
+
+### Old Data Displaying
+
+1. Webhooks are sent when you save configuration or test
+2. For real-time updates, consider setting up automation in Home Assistant
+3. Check webhook delivery in TRMNL plugin logs
 
 ## Support
 
-For questions or issues:
-- Check the main README.md
-- Review DOCS.md for integration details
-- Open an issue on GitHub
+- Add-on Issues: [GitHub Repository](https://github.com/DanielHabenicht/aitest.byos-trmnl-homeassistant)
+- TRMNL Documentation: [TRMNL BYOS](https://github.com/usetrmnl/byos_laravel)
+- Home Assistant: [Home Assistant Community](https://community.home-assistant.io/)
+
