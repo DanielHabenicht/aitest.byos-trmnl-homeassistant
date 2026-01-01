@@ -291,7 +291,7 @@
 
         async function addEntity(entityId) {
             try {
-                const response = await fetch('/api/homeassistant/entities/config', {
+                const response = await fetch('/homeassistant/api/entities/config', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -317,7 +317,7 @@
 
         async function removeEntity(entityId) {
             try {
-                const response = await fetch('/api/homeassistant/entities/config/' + encodeURIComponent(entityId), {
+                const response = await fetch('/homeassistant/api/entities/config/' + encodeURIComponent(entityId), {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
