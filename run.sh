@@ -53,8 +53,12 @@ fi
 # Set up database
 if [ "$DB_CONNECTION" = "sqlite" ]; then
     bashio::log.info "Setting up SQLite database..."
-    touch /data/database/trmnl.sqlite
-    chown nginx:nginx /data/database/trmnl.sqlite
+    if [ ! -f /data/database/trmnl.sqlite ]; then
+        touch /data/database/trmnl.sqlite
+    fi
+    # Ensure proper ownership regardless of whether file existed
+    chown -R nginx:nginx /data/database
+    chmod 664 /data/database/trmnl.sqlite
 fi
 
 # Run migrations

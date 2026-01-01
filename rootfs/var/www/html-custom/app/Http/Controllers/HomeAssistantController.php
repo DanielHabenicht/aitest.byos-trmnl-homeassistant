@@ -16,6 +16,11 @@ class HomeAssistantController extends Controller
     private function getAuthHeaders()
     {
         $token = env('SUPERVISOR_TOKEN', '');
+        
+        if (empty($token)) {
+            throw new \Exception('SUPERVISOR_TOKEN not available. Add-on may not have proper Home Assistant permissions.');
+        }
+        
         return [
             'Authorization' => 'Bearer ' . $token,
             'Content-Type' => 'application/json',
@@ -86,8 +91,16 @@ class HomeAssistantController extends Controller
     public function getEntity($entityId)
     {
         try {
+            // Validate entity ID format (domain.entity_name)
+            if (!preg_match('/^[a-z_]+\.[a-z0-9_]+$/', $entityId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid entity ID format',
+                ], 400);
+            }
+            
             $response = Http::withHeaders($this->getAuthHeaders())
-                ->get($this->getHomeAssistantUrl() . '/api/states/' . $entityId);
+                ->get($this->getHomeAssistantUrl() . '/api/states/' . urlencode($entityId));
 
             if ($response->successful()) {
                 return response()->json([
@@ -167,13 +180,37 @@ class HomeAssistantController extends Controller
                 ->where('enabled', true)
                 ->get();
 
+            if ($configs->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'entities' => [],
+                ]);
+            }
+
+            // Fetch all states in a single API call
+            $response = Http::withHeaders($this->getAuthHeaders())
+                ->get($this->getHomeAssistantUrl() . '/api/states');
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to fetch entity states from Home Assistant',
+                ], 500);
+            }
+
+            $allStates = $response->json();
+            $statesByEntityId = [];
+            
+            // Index states by entity_id for quick lookup
+            foreach ($allStates as $state) {
+                $statesByEntityId[$state['entity_id']] = $state;
+            }
+
+            // Map configured entities to their current states
             $entities = [];
             foreach ($configs as $config) {
-                $response = Http::withHeaders($this->getAuthHeaders())
-                    ->get($this->getHomeAssistantUrl() . '/api/states/' . $config->entity_id);
-
-                if ($response->successful()) {
-                    $entity = $response->json();
+                if (isset($statesByEntityId[$config->entity_id])) {
+                    $entity = $statesByEntityId[$config->entity_id];
                     $entity['display_name'] = $config->display_name;
                     $entity['format'] = $config->format;
                     $entities[] = $entity;
