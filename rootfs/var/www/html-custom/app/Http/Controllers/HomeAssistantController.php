@@ -18,7 +18,7 @@ class HomeAssistantController extends Controller
         $token = env('SUPERVISOR_TOKEN', '');
         
         if (empty($token)) {
-            throw new \Exception('SUPERVISOR_TOKEN not available. Add-on may not have proper Home Assistant permissions.');
+            throw new \Exception('SUPERVISOR_TOKEN environment variable not found. Ensure this add-on is running within Home Assistant with proper supervisor access.');
         }
         
         return [
@@ -66,7 +66,7 @@ class HomeAssistantController extends Controller
                 if ($request->has('domain')) {
                     $domain = $request->input('domain');
                     $entities = array_filter($entities, function($entity) use ($domain) {
-                        return strpos($entity['entity_id'], $domain . '.') === 0;
+                        return str_starts_with($entity['entity_id'], $domain . '.');
                     });
                 }
 
@@ -92,7 +92,8 @@ class HomeAssistantController extends Controller
     {
         try {
             // Validate entity ID format (domain.entity_name)
-            if (!preg_match('/^[a-z_]+\.[a-z0-9_]+$/', $entityId)) {
+            // Allow letters, numbers, underscores, and hyphens
+            if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_-]+$/', $entityId)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid entity ID format',
@@ -131,16 +132,31 @@ class HomeAssistantController extends Controller
         ]);
 
         try {
-            DB::table('homeassistant_entities')->updateOrInsert(
-                ['entity_id' => $validated['entity_id']],
-                [
+            $existing = DB::table('homeassistant_entities')
+                ->where('entity_id', $validated['entity_id'])
+                ->first();
+
+            if ($existing) {
+                // Update existing record, preserving created_at
+                DB::table('homeassistant_entities')
+                    ->where('entity_id', $validated['entity_id'])
+                    ->update([
+                        'display_name' => $validated['display_name'] ?? null,
+                        'format' => $validated['format'] ?? null,
+                        'enabled' => $validated['enabled'] ?? true,
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                // Insert new record
+                DB::table('homeassistant_entities')->insert([
+                    'entity_id' => $validated['entity_id'],
                     'display_name' => $validated['display_name'] ?? null,
                     'format' => $validated['format'] ?? null,
                     'enabled' => $validated['enabled'] ?? true,
-                    'updated_at' => now(),
                     'created_at' => now(),
-                ]
-            );
+                    'updated_at' => now(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,

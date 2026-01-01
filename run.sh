@@ -58,7 +58,7 @@ if [ "$DB_CONNECTION" = "sqlite" ]; then
     fi
     # Ensure proper ownership regardless of whether file existed
     chown -R nginx:nginx /data/database
-    chmod 664 /data/database/trmnl.sqlite
+    chmod 644 /data/database/trmnl.sqlite
 fi
 
 # Run migrations

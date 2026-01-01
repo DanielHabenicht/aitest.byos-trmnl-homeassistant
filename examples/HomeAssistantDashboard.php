@@ -15,6 +15,7 @@
 namespace App\Plugins;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class HomeAssistantDashboard
 {
@@ -95,7 +96,7 @@ class HomeAssistantDashboard
 
             return [];
         } catch (\Exception $e) {
-            \Log::error('Failed to fetch Home Assistant entities: ' . $e->getMessage());
+            Log::error('Failed to fetch Home Assistant entities: ' . $e->getMessage());
             return [];
         }
     }
