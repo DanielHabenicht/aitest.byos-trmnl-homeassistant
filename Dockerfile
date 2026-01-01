@@ -1,71 +1,38 @@
-ARG BUILD_FROM
-FROM $BUILD_FROM
+########################
+# Home Assistant Add-on for TRMNL BYOS
+# Reuses the official TRMNL BYOS Docker image
+########################
 
-# Set shell
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# Use official TRMNL BYOS Laravel image as base
+FROM ghcr.io/usetrmnl/byos_laravel:latest
 
-# Install base dependencies
+# Switch to root for system modifications
+USER root
+
+# Install Home Assistant add-on requirements
 RUN apk add --no-cache \
-    nginx \
-    php82 \
-    php82-fpm \
-    php82-pdo \
-    php82-pdo_sqlite \
-    php82-pdo_mysql \
-    php82-pdo_pgsql \
-    php82-mbstring \
-    php82-openssl \
-    php82-tokenizer \
-    php82-xml \
-    php82-ctype \
-    php82-json \
-    php82-curl \
-    php82-fileinfo \
-    php82-session \
-    php82-bcmath \
-    php82-dom \
-    php82-xmlwriter \
-    php82-simplexml \
-    composer \
-    git \
-    curl \
-    sqlite
+    bash \
+    curl
 
-# Create necessary directories
-RUN mkdir -p /var/www/html /run/nginx /run/php-fpm82 /data/database
+# Create data directory for persistent storage
+RUN mkdir -p /data/database
 
-# Set working directory
-WORKDIR /var/www/html
-
-# Clone TRMNL BYOS repository
-RUN git clone https://github.com/usetrmnl/byos_laravel.git /var/www/html && \
-    rm -rf .git
-
-# Install Composer dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-# Copy nginx configuration
-COPY rootfs/etc/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY rootfs/etc/nginx/http.d/default.conf /etc/nginx/http.d/default.conf
-
-# Copy PHP-FPM configuration
-COPY rootfs/etc/php82/php-fpm.d/www.conf /etc/php82/php-fpm.d/www.conf
-
-# Copy custom files
-COPY rootfs /
+# Copy custom Home Assistant integration files
+COPY rootfs/var/www/html-custom /var/www/html-custom
+COPY rootfs/usr/local/bin/setup-ha-integration.sh /usr/local/bin/
+COPY run.sh /run.sh
 
 # Set permissions
-RUN chown -R nginx:nginx /var/www/html /data/database && \
-    chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache && \
-    chmod +x /run.sh && \
-    chmod +x /usr/local/bin/setup-ha-integration.sh
+RUN chmod +x /run.sh && \
+    chmod +x /usr/local/bin/setup-ha-integration.sh && \
+    chown -R www-data:www-data /var/www/html-custom
 
-# Expose port
+# Expose port (TRMNL uses 8080)
 EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8080/ || exit 1
 
-# Start services
+# Use our custom run script
 CMD ["/run.sh"]

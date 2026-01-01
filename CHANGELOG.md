@@ -6,12 +6,17 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Initial release of TRMNL BYOS Home Assistant add-on
-- Integration with official TRMNL BYOS Laravel application
+- Integration with official TRMNL BYOS Laravel Docker image
+- Home Assistant entity configuration dashboard
 - SQLite database support for easy setup
-- Multi-architecture support (amd64, armv7, aarch64, armhf, i386)
 - Home Assistant ingress support
 - Web UI accessible through Home Assistant
 - Automatic database migrations
 - Laravel application key generation
-- Nginx web server with PHP-FPM
 - Persistent data storage in /data directory
+
+### Technical
+- Built on top of official ghcr.io/usetrmnl/byos_laravel Docker image
+- Custom Home Assistant integration layer
+- Entity exposure management via web dashboard
+- API endpoints for TRMNL plugins to access Home Assistant data

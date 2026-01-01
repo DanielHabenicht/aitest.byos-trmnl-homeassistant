@@ -4,15 +4,16 @@
 
 ### Components
 
-1. **Home Assistant Add-on Layer**
-   - Configuration: `config.yaml`
-   - Container: Alpine Linux with PHP 8.2
-   - Web Server: nginx with PHP-FPM
+1. **Base Image**
+   - Uses official TRMNL BYOS Docker image (ghcr.io/usetrmnl/byos_laravel:latest)
+   - Includes PHP 8.4, nginx, and all TRMNL BYOS functionality
+   - Built on serversideup-php Alpine base
 
-2. **TRMNL BYOS Laravel Application**
-   - Cloned from official repository
-   - Enhanced with Home Assistant integration
-   - Database: SQLite (default) or MySQL/PostgreSQL
+2. **Home Assistant Add-on Layer**
+   - Adds Home Assistant integration on top of TRMNL BYOS
+   - Custom Laravel controller for entity management
+   - REST API for entity exposure
+   - Web UI for configuration
 
 3. **Home Assistant Integration**
    - Custom Laravel controller for entity management

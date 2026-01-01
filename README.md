@@ -12,10 +12,12 @@ Host your own TRMNL (The Really Minimal kNowledge Library) backend using the BYO
 
 This add-on provides a self-hosted TRMNL backend that integrates seamlessly with Home Assistant. TRMNL is an e-ink display platform that shows various types of information. With this add-on, you can:
 
-- Host your own TRMNL backend using the official BYOS Laravel application
+- Host your own TRMNL backend using the official TRMNL BYOS Docker image
 - Access the TRMNL dashboard to configure your devices
 - Create a custom dashboard to select which Home Assistant entities to expose to your TRMNL displays
 - Full control over your data with local hosting
+
+This add-on is built on top of the official [TRMNL BYOS Laravel](https://github.com/usetrmnl/byos_laravel) Docker image and extends it with Home Assistant integration.
 
 ## Installation
 
